@@ -4,8 +4,8 @@ import json
 import time
 from export import render_strokes
 
-sqs = boto3.client("sqs")
-queue_url = os.environ["SQS_QUEUE_URL"]
+sqs = boto3.client("sqs", region_name="ap-southeast-2")
+queue_url = "https://sqs.ap-southeast-2.amazonaws.com/901444280953/n12197718-Whiteboard-A3"
 
 while True:
     response = sqs.receive_message(
@@ -15,14 +15,15 @@ while True:
     )
     messages = response.get("Messages", [])
     if not messages:
+        time.sleep(1)
         continue
 
     for msg in messages:
         try:
             body = json.loads(msg["Body"])
             roomID = body.get("roomID")
-            canvasH = body.get("canvasH")
-            canvasW = body.get("canvasW")
+            canvasH = body.get("canvasH", 3840)
+            canvasW = body.get("canvasW", 2160)
 
             render_strokes(roomID, canvasH, canvasW)
 
